@@ -58,7 +58,10 @@ module.exports = {
       {
         test: /\.js$/,
         loader: 'babel-loader',
-        exclude: /node_modules/
+        exclude: /node_modules/,
+        query: {
+          presets: ["es2015"]
+        }
       },
       {
         test: /\.(png|jpg|gif|svg)$/,
@@ -66,7 +69,7 @@ module.exports = {
         options: {
           name: '[name].[ext]?[hash]'
         }
-      }
+      },
     ]
   },
   resolve: {
@@ -95,6 +98,7 @@ if (process.env.NODE_ENV === 'production') {
         NODE_ENV: '"production"'
       }
     }),
+    // may not work on production so comment UglifyJsPlugin may be needed
     new webpack.optimize.UglifyJsPlugin({
       sourceMap: true,
       compress: {

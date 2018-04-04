@@ -26,46 +26,41 @@
 
       template : `
                 <section>
-                    <h1 class='is-title'>InnerSearch.js</h1>
+                    <h1 class='is-title'>innerSearch.js</h1>
 
                     <hr class='is-line' />
 
-                    <div>
-                        <searchbox :autofocus="true" :realtime="true" :timeout="2000" :field="['firstname']" :placeholder="'Search by firstname'"></searchbox>
-                        <!--<searchbox :realtime="true" :field="['firstname', 'lastname']" :pattern="'.*{v}.*'" :operator="'OR'" :placeholder="'Search by firstname and lastname (prefix)'" :suggestionbox="true">
-                            <template slot="suggestions" slot-scope="{ suggestion }">
-                                <div style="display : inline-block; width : 60%;" v-html="">
-                                    {{ suggestion._source.firstname }} {{ suggestion._source.lastname }}
+                    <div class="columns">
+                        <div class="column is-one-fifth">
+                            <div>
+                                <refinement-list-filter :field="'state'" :title="'State : '" :size="10" :dynamic="true" orderKey="_count" orderDirection="desc" operator="OR"></refinement-list-filter>
+                                <refinement-list-filter :field="'gender'" :size="100" :title="'Gender : '" :displayCount="true" operator="OR"></refinement-list-filter>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <div>
+                                <searchbox :autofocus="true" :realtime="true" :timeout="200" :field="'firstname'" :placeholder="'Search by firstname'"></searchbox>
+                                <div style="margin: 20px auto;width: 90%">
+                                    <search-button></search-button>
+                                    <reset-button></reset-button>
                                 </div>
-                                <div style="display : inline-block; width : 39%; text-align : right; opacity : 0.35;">
-                                    <strong>{{ suggestion._source.gender }}</strong>
-                                </div>
-                            </template>
-                        </searchbox>
-                        <searchbox :realtime="true" :field="['firstname', 'lastname']" :pattern="'.*{v}.*'" :operator="'OR'" :placeholder="'Search by firstname and lastname'" :suggestionbox="true">
-                            <template slot="suggestions" slot-scope="{ suggestion }">
-                                <div>{{ suggestion._source.firstname }} {{ suggestion._source.lastname }}</div>
-                            </template>
-                        </searchbox>-->
-                        <refinement-list-filter :field="'state'" :title="'State: '" :dynamic="false" orderKey="_count" orderDirection="asc" operator="OR"></refinement-list-filter>
-                        <refinement-list-filter :field="'gender'" :size="100" :title="'Gender: '" :displayCount="true" operator="OR"></refinement-list-filter>
-                        <search-button></search-button>
+                                <hits>
+                                    <template slot="hits" slot-scope="{ hits }">
+                                        <div class="is-score is-hits">
+                                            <strong v-if="hits.score === 0">No result found</strong>
+                                            <strong v-else-if="hits.score === 1">1 result found</strong>
+                                            <strong v-else-if="hits.score > 1">{{ hits.score }} results found</strong>
+                                        </div>
+                                        <div v-for="item in hits.items" :item="item">
+                                            <div><strong>Identity (firstname, lastname) :</strong> {{ item._source.firstname }} {{ item._source.lastname }} ({{ item._source.state }}, {{ item._source.gender }})</div>
+                                        </div>
+                                    </template>
+                                </hits>
+
+                                <paginate :previousText="'Previous page'" :nextText="'Next page'" :size="10"></paginate>
+                            </div>
+                         </div>
                     </div>
-
-                    <hits>
-                        <template slot="hits" slot-scope="{ hits }">
-                            <div class="is-score is-hits">
-                                <strong v-if="hits.score === 0">No result found</strong>
-                                <strong v-else-if="hits.score === 1">1 result found</strong>
-                                <strong v-else-if="hits.score > 1">{{ hits.score }} results found</strong>
-                            </div>
-                            <div v-for="item in hits.items" :item="item">
-                                <div><strong>Identity (firstname, lastname) :</strong> {{ item._source.firstname }} {{ item._source.lastname }} ({{ item._source.state }}, {{ item._source.gender }})</div>
-                            </div>
-                        </template>
-                    </hits>
-
-                    <paginate :previousText="'Previous page'" :nextText="'Next page'" :size="10"></paginate>
                 </section>
             `
     });
@@ -74,11 +69,10 @@
   export default {};
 </script>
 
-
 <style>
   /*
-     Global fields
- */
+    Global fields
+*/
 
   .is-component {
     border : 1px solid #A9A9A9;
@@ -141,7 +135,7 @@
     width : 50px;
     height : 50px;
     margin : 5px;
-    background-image : url('./assets/search.svg');
+    background-image : url('assets/search.svg');
     opacity : .4;
   }
 
@@ -149,6 +143,112 @@
     width : 100%;
     border : 0;
     color : #2C2C2C;
+  }
+
+
+  /*
+      Search Datalist
+  */
+
+  .is-component.is-search-datalist {
+    display : flex;
+    width : 90%;
+    margin : 0 auto;
+  }
+
+  .is-icon.is-search-datalist {
+    width : 50px;
+    height : 50px;
+    margin : 5px;
+    background-image : url('assets/search.svg');
+    opacity : .4;
+  }
+
+  .is-field.is-search-datalist {
+    width : 100%;
+    border : 0;
+    color : #2C2C2C;
+  }
+
+  .is-search-datalist-items {
+    width : 90%;
+    margin : 0 auto;
+  }
+
+  .is-search-datalist-items li {
+    display : inline-block;
+    margin : 10px 5px;
+    padding : 5px 10px;
+    border-radius : 4px;
+    background-color : rgba(209, 209, 209, 0.8);
+    transition : all 0.3s ease;
+    cursor : pointer;
+  }
+
+  .is-search-datalist-items li:hover {
+    background-color : rgba(209, 209, 209, 1);
+  }
+
+  .is-search-datalist-items li:first-child {
+    margin-left : 0 !important;
+  }
+
+  .is-search-datalist-items li:after {
+    content : 'x';
+    margin-left : 5px;
+    color : rgba(129, 35, 35, 0.6);
+    font-family : Calibri, sans-serif;
+    font-weight : bolder;
+    transition : all 0.3s ease;
+  }
+
+  .is-search-datalist-items li:hover:after {
+    color : rgba(129, 35, 35, 0.8);
+  }
+
+  .is-search-datalist-suggestions {
+    width : 90%;
+    margin : 0 auto;
+    border-right : 1px solid #A9A9A9;
+    border-bottom : 1px solid #A9A9A9;
+    border-left : 1px solid #A9A9A9;
+  }
+
+  .is-search-datalist-suggestions ul {
+    max-height : 250px;
+    overflow : auto;
+  }
+
+  .is-search-datalist-suggestions li {
+    padding : 5px 10px;
+    font-family : Calibri, sans-serif;
+  }
+
+  .is-search-datalist-suggestions li:not(.noresult) {
+    cursor : pointer;
+  }
+
+  .is-search-datalist-suggestions li:not(.noresult):nth-child(odd) {
+    background-color : #EAEAEA;
+  }
+
+  .is-search-datalist-suggestions li:not(.noresult):nth-child(even) {
+    background-color : #F9F9F9;
+  }
+
+  .is-search-datalist-suggestions li.noresult {
+    font-style : oblique;
+    font-weight : bolder;
+  }
+
+  .is-search-datalist-suggestions li:not(.noresult).selected {
+    background : #181818;
+    color : #F0F0F0;
+  }
+
+  .is-search-datalist-suggestions li em {
+    font-style : normal;
+    font-weight : bold;
   }
 
 
@@ -166,17 +266,17 @@
 
   .is-item.is-refinement-list {
     display : inline-block;
-    width : 20%;
+    width : 100%;
   }
 
 
   /*
-      Search Button
+      Search & Reset Button
   */
 
-  .is-component.is-search-button {
+  .is-component.is-search-button, .is-component.is-reset-button {
     display : inline-block;
-    margin : 0 25px 0 5%;
+    margin : 5px 10px 5px 0;
     border : 0;
   }
 
@@ -204,6 +304,29 @@
     border-color : #122b40;
   }
 
+  .is-button.is-reset-button {
+    color : #fff;
+    background-color : #B73337;
+    border-color : #A42E2E;
+  }
+
+  .is-button.is-reset-button:hover {
+    color : #fff;
+    background-color : #902828;
+    border-color : #742020;
+  }
+
+  .is-button.is-reset-button:active {
+    color : #fff;
+    background-color : #902828;
+    border-color : #742020;
+  }
+
+  .is-button.is-reset-button:focus {
+    color : #fff;
+    background-color : #902828;
+    border-color : #401212;
+  }
 
   /*
       Hits
@@ -251,4 +374,5 @@
     border : 2px solid #C4C4C4;
     padding : 10px;
   }
+
 </style>
