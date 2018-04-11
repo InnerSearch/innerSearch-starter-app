@@ -9,7 +9,7 @@
   */
 
   import Vue from 'vue';
-  import InnerSearch from '../node_modules/innersearch/InnerSearch';
+  import InnerSearch from '../node_modules/vue-innersearch/InnerSearch';
 
   Vue.use(InnerSearch);
 

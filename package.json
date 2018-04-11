@@ -12,7 +12,7 @@
   "dependencies": {
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-preset-stage-2": "^6.24.1",
-    "innersearch": "0.0.8",
+    "vue-innersearch": "0.0.2",
     "vue": "^2.4.4",
     "bulma": "^0.6.2"
   },
