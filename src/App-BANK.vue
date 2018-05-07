@@ -9,9 +9,26 @@
   */
 
   import Vue from 'vue';
-  import InnerSearch from '../node_modules/vue-innersearch/InnerSearch';
+  import {Searchbox,
+    SearchDatalist,
+    RefinementListFilter,
+    Paginate,
+    SearchButton,
+    ResetButton,
+    Hits,Generics,NumericListFilter} from 'vue-innersearch/src/innerSearch';
 
-  Vue.use(InnerSearch);
+
+
+      Vue.component('searchbox', Searchbox);
+      Vue.component('search-datalist', SearchDatalist);
+      Vue.component('refinement-list-filter', RefinementListFilter);
+      Vue.component('paginate', Paginate);
+      Vue.component('search-button', SearchButton);
+      Vue.component('reset-button', ResetButton);
+      Vue.component('hits', Hits);
+      Vue.component('numeric-list-filter', NumericListFilter);
+
+      Vue.mixin(Generics);
 
   window.addEventListener('load', function () {
     new Vue({
@@ -30,16 +47,66 @@
 
                     <hr class='is-line' />
 
-                    <div class="columns">
-                        <div class="column is-one-fifth">
+                    <div class="is-columns">
+                        <div class="is-column is-one-fifth">
                             <div>
-                                <refinement-list-filter :field="'state'" :title="'State : '" :size="10" :dynamic="true" orderKey="_count" orderDirection="desc" operator="OR"></refinement-list-filter>
-                                <refinement-list-filter :field="'gender'" :size="100" :title="'Gender : '" :displayCount="true" operator="OR"></refinement-list-filter>
+                                <refinement-list-filter :field="'state'" :search="true" :title="'State : '" :size="100"  orderKey="_count" orderDirection="desc" operator="AND">
+                                    <template slot="label" slot-scope="{ displayCount,clickOnLabel,clickOnItem,items,checkedItems }">
+                                        <select name="" id="test" v-model="checkedItems"  @change="clickOnItem(checkedItems)">
+                                            <option selected="selected"></option>
+                                            <option v-for="(item, index) in items" :value="item.key">
+                                                    <label v-if="displayCount" :for="item.key" v-on:click='clickOnLabel(item.key)'>{{ item.key }} ( {{ item.doc_count }} )</label>
+                                            </option>
+                                        </select>
+                                    </template>
+                                    <template slot="viewmore"></template>
+                                </refinement-list-filter>
+                                <refinement-list-filter :field="'age'" :search="true" :title="'Age : '" :size="19"  orderKey="_count" orderDirection="desc" operator="OR">
+                                    <template slot="title" slot-scope="{ title }">
+                                        <h3 class="is-refinement-menu-title" style="width: fit-content;display: inline-block;margin-right: 120px;">{{title}}</h3>
+                                    </template>
+                                    <template slot="label" slot-scope="{ displayCount,clickOnLabel,clickOnItem,items,checkedItems }">
+                                        <div  v-for="(item, index) in items" :key="index" class="is-item is-refinement-list">
+                                            <input
+                                            type="radio"
+                                            name="age"
+                                            :value="item.key"
+                                            v-model="checkedItems"
+                                            @change="clickOnItem(checkedItems)">
+                                            <label v-if="displayCount" :for="item.key" v-on:click='clickOnLabel(item.key)'>{{ item.key }} years old ( {{ item.doc_count }} )</label>
+                                            <label v-else :for="item.key" v-on:click='clickOnLabel(item.key)'>{{ item.key }}</label>
+                                        </div>
+                                    </template>
+                                    <template slot="uncheck_all" slot-scope="{ uncheckAll }">
+                                        <a href="#" v-on:click='uncheckAll()' style="font-size:0.8em">Clear</a>
+                                    </template>
+                                </refinement-list-filter>
+                                <refinement-list-filter :field="'gender'" :search="true" :size="100" :title="'Gender : '" :displayCount="true" operator="OR" ></refinement-list-filter>
                             </div>
                         </div>
-                        <div class="column">
+                        <div class="is-column">
                             <div>
                                 <searchbox :autofocus="true" :realtime="true" :timeout="200" :field="'firstname'" :placeholder="'Search by firstname'"></searchbox>
+
+                                <search-datalist :realtime="true" :field="'lastname'" :suggestion="['firstname', 'lastname']">
+                                    <template slot="items" slot-scope="{ item }">
+                                        {{ item._source.firstname }} {{ item._source.lastname }} (<strong>{{ item._source.gender }}</strong>)
+                                    </template>
+
+                                    <template slot="nosuggestion" slot-scope="{ value }">
+                                        Sorry, "{{ value }}" doesn't exist... :(
+                                    </template>
+
+                                    <template slot="suggestions" slot-scope="{ suggestion }">
+                                        <span v-html="suggestion.highlight.firstname ? suggestion.highlight.firstname[0] : suggestion._source.firstname"></span>
+                                        <span v-html="suggestion.highlight.lastname ? suggestion.highlight.lastname[0] : suggestion._source.lastname"></span>
+                                    </template>
+                                </search-datalist>
+                                <numeric-list-filter :field="'balance'">
+                                    <template slot="header">
+                                        <h3 class="is-nlf-title">Balance : </h3>
+                                    </template>
+                                </numeric-list-filter>
                                 <div style="margin: 20px auto;width: 90%">
                                     <search-button></search-button>
                                     <reset-button></reset-button>
@@ -52,12 +119,12 @@
                                             <strong v-else-if="hits.score > 1">{{ hits.score }} results found</strong>
                                         </div>
                                         <div v-for="item in hits.items" :item="item">
-                                            <div><strong>Identity (firstname, lastname) :</strong> {{ item._source.firstname }} {{ item._source.lastname }} ({{ item._source.state }}, {{ item._source.gender }})</div>
+                                            <div><strong>Identity (firstname, lastname) :</strong> {{ item._source.firstname }} {{ item._source.lastname }} ({{ item._source.state }}, {{ item._source.gender }} , {{item._source.balance}})</div>
                                         </div>
                                     </template>
                                 </hits>
 
-                                <paginate :previousText="'Previous page'" :nextText="'Next page'" :size="10"></paginate>
+                                <paginate :previousText="'&#x2B9C; Previous page'" :nextText="'Next page &#x2B9E;'" :size="10"></paginate>
                             </div>
                          </div>
                     </div>
@@ -70,309 +137,6 @@
 </script>
 
 <style>
-  /*
-    Global fields
-*/
-
-  .is-component {
-    border : 1px solid #A9A9A9;
-    font-family : Calibri, sans-serif;
-  }
-
-  .is-icon {
-    background-repeat : no-repeat;
-    background-position : center center;
-    background-size : contain;
-  }
-
-  .is-field {
-    font-size : 2em;
-    padding : 5px;
-  }
-
-  .is-button {
-    padding : 15px;
-    border : 1px solid transparent;
-    border-radius : 4px;
-    font-size : 1.25em;
-    cursor : pointer;
-    user-select : none;
-  }
-
-  .is-field:focus, .is-field:focus{
-    outline: none;
-  }
-
-
-  /*
-      Assets
-  */
-
-  .is-title {
-    font-size : 4em;
-    color : #3C434B;
-    font-family : Calibri, sans-serif;
-    margin : 20px 0 10px 5%;
-  }
-
-  .is-line {
-    width : 90%;
-    margin: auto;
-  }
-
-
-  /*
-      SearchBox
-  */
-
-  .is-component.is-searchbox {
-    display : flex;
-    width : 90%;
-    margin : 20px auto;
-  }
-
-  .is-icon.is-searchbox {
-    width : 50px;
-    height : 50px;
-    margin : 5px;
-    background-image : url('assets/search.svg');
-    opacity : .4;
-  }
-
-  .is-field.is-searchbox {
-    width : 100%;
-    border : 0;
-    color : #2C2C2C;
-  }
-
-
-  /*
-      Search Datalist
-  */
-
-  .is-component.is-search-datalist {
-    display : flex;
-    width : 90%;
-    margin : 0 auto;
-  }
-
-  .is-icon.is-search-datalist {
-    width : 50px;
-    height : 50px;
-    margin : 5px;
-    background-image : url('assets/search.svg');
-    opacity : .4;
-  }
-
-  .is-field.is-search-datalist {
-    width : 100%;
-    border : 0;
-    color : #2C2C2C;
-  }
-
-  .is-search-datalist-items {
-    width : 90%;
-    margin : 0 auto;
-  }
-
-  .is-search-datalist-items li {
-    display : inline-block;
-    margin : 10px 5px;
-    padding : 5px 10px;
-    border-radius : 4px;
-    background-color : rgba(209, 209, 209, 0.8);
-    transition : all 0.3s ease;
-    cursor : pointer;
-  }
-
-  .is-search-datalist-items li:hover {
-    background-color : rgba(209, 209, 209, 1);
-  }
-
-  .is-search-datalist-items li:first-child {
-    margin-left : 0 !important;
-  }
-
-  .is-search-datalist-items li:after {
-    content : 'x';
-    margin-left : 5px;
-    color : rgba(129, 35, 35, 0.6);
-    font-family : Calibri, sans-serif;
-    font-weight : bolder;
-    transition : all 0.3s ease;
-  }
-
-  .is-search-datalist-items li:hover:after {
-    color : rgba(129, 35, 35, 0.8);
-  }
-
-  .is-search-datalist-suggestions {
-    width : 90%;
-    margin : 0 auto;
-    border-right : 1px solid #A9A9A9;
-    border-bottom : 1px solid #A9A9A9;
-    border-left : 1px solid #A9A9A9;
-  }
-
-  .is-search-datalist-suggestions ul {
-    max-height : 250px;
-    overflow : auto;
-  }
-
-  .is-search-datalist-suggestions li {
-    padding : 5px 10px;
-    font-family : Calibri, sans-serif;
-  }
-
-  .is-search-datalist-suggestions li:not(.noresult) {
-    cursor : pointer;
-  }
-
-  .is-search-datalist-suggestions li:not(.noresult):nth-child(odd) {
-    background-color : #EAEAEA;
-  }
-
-  .is-search-datalist-suggestions li:not(.noresult):nth-child(even) {
-    background-color : #F9F9F9;
-  }
-
-  .is-search-datalist-suggestions li.noresult {
-    font-style : oblique;
-    font-weight : bolder;
-  }
-
-  .is-search-datalist-suggestions li:not(.noresult).selected {
-    background : #181818;
-    color : #F0F0F0;
-  }
-
-  .is-search-datalist-suggestions li em {
-    font-style : normal;
-    font-weight : bold;
-  }
-
-
-  /*
-      Refinement list
-  */
-
-  .is-component.is-refinement-list {
-    width : 90%;
-    margin : 20px auto;
-    padding : 15px;
-    font-size : 1.25em;
-    box-sizing : border-box;
-  }
-
-  .is-item.is-refinement-list {
-    display : inline-block;
-    width : 100%;
-  }
-
-
-  /*
-      Search & Reset Button
-  */
-
-  .is-component.is-search-button, .is-component.is-reset-button {
-    display : inline-block;
-    margin : 5px 10px 5px 0;
-    border : 0;
-  }
-
-  .is-button.is-search-button {
-    color : #fff;
-    background-color : #337ab7;
-    border-color : #2e6da4;
-  }
-
-  .is-button.is-search-button:hover {
-    color : #fff;
-    background-color : #286090;
-    border-color : #204d74;
-  }
-
-  .is-button.is-search-button:active {
-    color : #fff;
-    background-color : #286090;
-    border-color : #204d74;
-  }
-
-  .is-button.is-search-button:focus {
-    color : #fff;
-    background-color : #286090;
-    border-color : #122b40;
-  }
-
-  .is-button.is-reset-button {
-    color : #fff;
-    background-color : #B73337;
-    border-color : #A42E2E;
-  }
-
-  .is-button.is-reset-button:hover {
-    color : #fff;
-    background-color : #902828;
-    border-color : #742020;
-  }
-
-  .is-button.is-reset-button:active {
-    color : #fff;
-    background-color : #902828;
-    border-color : #742020;
-  }
-
-  .is-button.is-reset-button:focus {
-    color : #fff;
-    background-color : #902828;
-    border-color : #401212;
-  }
-
-  /*
-      Hits
-  */
-
-  .is-component.is-hits {
-    width : 90%;
-    margin : 20px auto;
-    padding : 15px;
-    font-size : 1.25em;
-    box-sizing : border-box;
-  }
-
-  .is-score.is-hits {
-    margin : 10px 0 20px 50px;
-    font-size : 1.75em;
-    font-weight : bolder;
-    font-variant : small-caps;
-  }
-
-  .is-item.is-hits {
-    width : 90%;
-    margin : 20px auto;
-    padding : 20px;
-    background : #EFEFEF;
-  }
-
-  .is-item.is-hits ul {
-    margin : 0;
-  }
-
-
-  /*
-      Pagination
-  */
-
-
-  /*
-      Suggestion Box
-  */
-
-  .is-component.is-suggestion-box {
-    width : 90%;
-    margin : 0 auto;
-    border : 2px solid #C4C4C4;
-    padding : 10px;
-  }
-
+  @import url(https://unpkg.com/vue-innersearch@0.0.10/default-innersearch-theme.min.css)
 </style>
+
