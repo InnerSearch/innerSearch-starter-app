@@ -36,7 +36,11 @@
 
       created : function () {
         // ES server configuration
-        this.setHost('http://es.yinyan.fr');
+        this.setHost({
+            host: "es.yinyan.fr",
+            port : 80,
+            protocol : 'http'
+        });
         this.setIndex('bank');
         this.setType('account');
       },
